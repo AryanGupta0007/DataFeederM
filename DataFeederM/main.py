@@ -1,13 +1,11 @@
 from pymongo import MongoClient
-# from Utils import Utils
-from .Utils import Utils
-import pandas as pd
+prod = True
+if prod:
+    from .Utils import Utils
+else:
+    from Utils import Utils
+
 import warnings
-from dotenv import load_dotenv
-import os
-
-load_dotenv()  # loads variables from .env into environment
-
 warnings.filterwarnings("ignore", category=FutureWarning)
 
 
@@ -18,8 +16,8 @@ def get_collections_and_dbs(syms:list, epochs:list):
     dbs = Utils.get_dbs(syms)
     return collections, dbs
 
-def main(mongo_uri, syms: list, epochs: list):
-    client = MongoClient(mongo_uri)
+def main(mongo_client, syms: list, epochs: list):
+    client = mongo_client
 
     collections, dbs = get_collections_and_dbs(syms, epochs)
     output = {}
@@ -93,6 +91,13 @@ def main(mongo_uri, syms: list, epochs: list):
         
 if __name__ == "__main__":
     import random
+    from dotenv import load_dotenv
+    import os
+    import pandas as pd
+
+    load_dotenv()  # loads variables from .env into environment
+
+
     tis_df = pd.read_csv('ti.csv', index_col=0)
     tis_df.rename(columns={0: "ti"}, inplace=True)
     x = random.randint(0, len(tis_df))
@@ -102,7 +107,8 @@ if __name__ == "__main__":
     epoch_2023 = 1687854060 
     epochs = [e_x, e_y]
     syms = ['NIFTY BANK', 'NIFTY 50', 'CIPLA']
-    output = main(mongo_uri=os.getenv('MONGO_URI'), syms=syms, epochs=epochs)
+    client = MongoClient(os.getenv('MONGO_URI'))
+    output = main(mongo_client=client, syms=syms, epochs=epochs)
     if output:
         print(output)
                 
