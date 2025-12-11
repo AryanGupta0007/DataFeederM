@@ -1,6 +1,13 @@
 import re
 from datetime import datetime
 
+def expand_years(year_list):
+    if not year_list or len(year_list) < 2:
+        return year_list
+    
+    start, end = map(int, year_list[:2])
+    return [str(y) for y in range(start, end + 1)]
+
 class Utils:
 
     # ---------- REGEX PATTERNS (FIXED) ----------
@@ -57,6 +64,11 @@ class Utils:
         for e in epochs:
             collection = Utils.get_collection_name(e)
             collections.append(collection)
+        
+        collections = expand_years(collections)
+        print(collections)
+        import sys 
+        sys.exit()
         return collections
     
     @classmethod 

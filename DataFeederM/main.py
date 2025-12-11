@@ -106,6 +106,8 @@ if __name__ == "__main__":
     e_y = int(tis_df.loc[y][0])
     epoch_2023 = 1687854060 
     epochs = [e_x, e_y]
+    epoch_2022 = 1640995200
+    epochs = [epoch_2023, 1735689600]
     syms = ['NIFTY BANK', 'NIFTY 50', 'CIPLA']
     client = MongoClient(os.getenv('MONGO_URI'))
     output = main(mongo_client=client, syms=syms, epochs=epochs)
