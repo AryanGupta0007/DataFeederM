@@ -1,91 +1,18 @@
-from pymongo import MongoClient
-prod = True
+import requests
+prod = False
 if prod:
     from .Utils import Utils
 else:
     from Utils import Utils
 
 import warnings
+from GetData import GetData
 warnings.filterwarnings("ignore", category=FutureWarning)
 
 
-# print(Utils.get_db_name("CIPLA"))
-
-def get_collections_and_dbs(syms:list, epochs:list):
-    collections = Utils.get_collections(epochs)
-    dbs = Utils.get_dbs(syms)
-    return collections, dbs
-
-def main(mongo_client, syms: list, epochs: list):
-    client = mongo_client
-
-    collections, dbs = get_collections_and_dbs(syms, epochs)
-    output = {}
-    for i, sym in enumerate(syms):
-        # print(sym, collections)
-        # print(dbs[sym])
-        rows = []
-        db = client[dbs[sym]]
-        if len(epochs) == 1:
-            # print("here")
-            e = epochs[0]
-            collection = db[collections[0]]
-            res = collection.find({
-                'ti': e,
-                'sym': sym 
-            })
-            if res:
-                    for r in res:
-                        rows.append(r)
-                    output[sym] = rows
-                    
-                    
-        elif len(epochs) == 2:
-            if len(set(collections)) == 1:
-                # print("here123")
-                collection = db[collections[0]]
-                res = collection.find({
-                    'ti': {
-                        "$gte": epochs[0],
-                        "$lte": epochs[1]
-                    },
-                    "sym": sym
-                })
-                if res:
-                    for r in res:
-                        rows.append(r)
-                    output[sym] = rows
-                    
-            else: 
-                ## NOT TESTED
-                collections = list(set(collections))
-                for i, col in enumerate(collections):
-                    # print("..: ", i, col, dbs[sym])
-                    collection = db[col] 
-                    if i == 0:
-                        res = collection.find({
-                        "ti": {
-                            "$gte": epochs[0]
-                        },
-                        "sym": sym
-                            })
-                    elif i == len(collections) - 1:
-                        res = collection.find({
-                        "ti": {
-                            "$lte": epochs[1]
-                        },
-                        "sym": sym
-                        })
-                    else:
-                        res = collection.find({
-                            "sym": sym
-                        })
-                    if res:
-                        for r in res:
-                            rows.append(r)
-                        output[sym] = rows
-                    
-                
+def main(ORB_URL, ORB_USERNAME, ORB_PASSWORD, syms: list, epochs: list):
+    accesstoken = Utils.login_orb(ORB_URL=ORB_URL, ORB_USERNAME=ORB_USERNAME, ORB_PASSWORD=ORB_PASSWORD)
+    output = GetData.for_sym_and_ti(accesstoken, syms, epochs, ORB_URL)
     return output
         
         
@@ -104,15 +31,22 @@ if __name__ == "__main__":
     y = random.randint(x+1, len(tis_df))
     e_x = int(tis_df.loc[x][0])
     e_y = int(tis_df.loc[y][0])
-    epoch_2023 = 1687854060 
-    epochs = [e_x, e_y]
-    epoch_2022 = 1640995200
-    epochs = [epoch_2023, 1735689600]
-    syms = ['NIFTY BANK', 'NIFTY 50', 'CIPLA']
-    client = MongoClient(os.getenv('MONGO_URI'))
-    output = main(mongo_client=client, syms=syms, epochs=epochs)
+    epoch_2023 = 1687854060
+    epoch_2022 = 1640995200 
+    epochs = [epoch_2023, e_y]
+    # print(epochs)
+    # epochs = [epoch_2023, 1735689600]
+    syms = ['ADANIENT-I']
+    # syms = ['CIPLA-I']
+    output = main(ORB_URL=os.getenv('ORB_URL'), ORB_USERNAME=os.getenv('ORB_USERNAME'), ORB_PASSWORD=os.getenv('ORB_PASSWORD'), syms =syms, epochs=epochs)
+    # output = main(mongo_client=client, syms=syms, epochs=epochs)
     if output:
-        print(output)
+        for k, v in output.items():
+            # print(k)
+            import pandas as pd
+            df = pd.DataFrame(v)
+            # print(df)
+            # df.to_csv(f'{k}_OUTPUT.csv')
                 
                     
         

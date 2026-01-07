@@ -1,5 +1,6 @@
 import re
 from datetime import datetime
+import requests 
 
 def expand_years(year_list):
     if not year_list or len(year_list) < 2:
@@ -10,8 +11,7 @@ def expand_years(year_list):
 
 class Utils:
 
-    # ---------- REGEX PATTERNS (FIXED) ----------
-
+    
     INDEX_OPTION_PATTERN  = re.compile(r"^(NIFTY|BANKNIFTY|FINNIFTY|MIDCPNIFTY|SENSEX|BANKEX)")
     
     INDEX_FUTURE_PATTERN  = re.compile(r"^(NIFTY|BANKNIFTY|FINNIFTY)(\d{2}[A-Z]{3}FUT|-I)")
@@ -21,12 +21,11 @@ class Utils:
         r"NIFTY PHARMA|NIFTY OIL AND GAS|NIFTY MEDIA|NIFTY IT|NIFTY FMCG|SENSEX)"
     )
     
-    # OPTION ex: NIFTY25FEB2119500CE
     OPTION_PATTERN        = re.compile(
-        r"^([A-Z0-9.&_\-]+)"          # symbol
-        r"(\d{1,2}[A-Z]{3}\d{2})"     # expiry (fixed: \"d{2})
-        r"(\d{1,7})"                  # strike
-        r"(CE|PE)$"                   # option type
+        r"^([A-Z0-9.&_\-]+)"          
+        r"(\d{1,2}[A-Z]{3}\d{2})"     
+        r"(\d{1,7})"                  
+        r"(CE|PE)$"                    
     )
 
     FUTURE_PATTERN        = re.compile(
@@ -54,28 +53,54 @@ class Utils:
             else:
                 return "stock_db"    
 
-    @classmethod
-    def get_collection_name(cls, ti, fmt="%Y"):
+    @staticmethod
+    def get_collection_name(ti, fmt="%Y"):
         return datetime.fromtimestamp(ti).strftime(fmt)
     
     @classmethod 
     def get_collections(cls, epochs: list):
         collections = []
         for e in epochs:
-            collection = Utils.get_collection_name(e)
+            collection = cls.get_collection_name(e)
             collections.append(collection)
         
         collections = expand_years(collections)
         print(collections)
-        import sys 
-        sys.exit()
         return collections
     
     @classmethod 
     def get_dbs(cls, syms: list):
         dbs = {}
         for sym in syms:
-            db = Utils.get_db_name(sym)
+            db = cls.get_db_name(sym)
             dbs[sym] = db
         return dbs
     
+    @staticmethod
+    def login_orb(ORB_USERNAME, ORB_PASSWORD, ORB_URL):
+        auth_data = {
+            "username": ORB_USERNAME,
+            "password": ORB_PASSWORD
+        }
+        response = requests.post(f"{ORB_URL}/api/auth/token", data=auth_data)
+        token = response.json().get("access_token")
+        return token
+    
+    @classmethod
+    def get_collections_and_dbs(cls, syms:list, epochs:list):
+        collections = cls.get_collections(epochs)
+        dbs = cls.get_dbs(syms)
+        return collections, dbs
+    
+    @staticmethod
+    def find_request_orb(ORB_URL, payload, accesstoken):
+        headers = {
+            'Authorization': f'Bearer {accesstoken}'
+            }
+        response = requests.post(f"{ORB_URL}/api/data/find", headers=headers, json=payload)
+        data = response.json()
+        if data["status_code"] == 200:
+            return data['data']
+        else:
+            raise Exception(data)
+        
