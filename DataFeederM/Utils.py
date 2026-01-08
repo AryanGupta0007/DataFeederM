@@ -102,5 +102,5 @@ class Utils:
         if data["status_code"] == 200:
             return data['data']
         else:
-            raise Exception(data)
+            print(f'ORB SERVER RESPONSE: {data['data']}')
         
