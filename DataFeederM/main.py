@@ -1,12 +1,13 @@
-import requests
-prod = False
+prod = True
 if prod:
     from .Utils import Utils
+    from .GetData import GetData
 else:
     from Utils import Utils
+    from GetData import GetData
+
 
 import warnings
-from GetData import GetData
 warnings.filterwarnings("ignore", category=FutureWarning)
 
 
