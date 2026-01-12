@@ -51,7 +51,7 @@ class Utils:
             if cls.INDEX_SPOT_PATTERN.search(sym):
                 return "index_db"    
             else:
-                return "stock_db"    
+                return "stocks_db"    
 
     @staticmethod
     def get_collection_name(ti, fmt="%Y"):
