@@ -6,6 +6,36 @@ else:
     
     
 class GetData:
+    def get_options_monthly_data(ORB_URL, accesstoken, syms, month, year):
+        output = {}
+        for sym in syms:
+            if sym in ["NIFTY", "BANKNIFTY"]:
+                db = "index_options_db"
+            else:
+                db = "stock_options_db"
+            from datetime import datetime, timezone
+            start_dt = f"{year}-{month}-01 18:30:00"
+            end_dt = f"{year}-{month}-31 18:30:00"
+            epoch_start = int(datetime.strptime(start_dt, "%Y-%m-%d %H:%M:%S")
+                                .replace(tzinfo=timezone.utc)
+                                .timestamp())
+            epoch_end = int(datetime.strptime(end_dt, "%Y-%m-%d %H:%M:%S")
+                                .replace(tzinfo=timezone.utc)
+                                .timestamp())
+            print(db, epoch_end, epoch_start)
+            payload = {
+                    "db": db,
+                    "collection": f"{year}",
+                    "query": {
+                            "sym": {"$regex": f"^{sym}"}, "ti": {"$gte": epoch_start, "$lte": epoch_end}
+                        }
+                    }
+            res = Utils.find_request_orb(ORB_URL, payload, accesstoken)
+            output[f"{sym}-O"] = list(res)
+        return output
+            
+        
+        
     @staticmethod
     def for_sym_and_ti(accesstoken, syms, epochs, ORB_URL):
         collections, dbs = Utils.get_collections_and_dbs(syms, epochs)
