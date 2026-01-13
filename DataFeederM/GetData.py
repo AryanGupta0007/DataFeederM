@@ -6,8 +6,9 @@ else:
     
     
 class GetData:
-    def get_options_monthly_data(ORB_URL, accesstoken, syms, month, year):
+    def get_options_monthly_data(ORB_URL, accesstoken, syms, month, year, current_month_only=False):
         output = {}
+        # print(month_abbr)  # JAN
         for sym in syms:
             if sym in ["NIFTY", "BANKNIFTY"]:
                 db = "index_options_db"
@@ -22,19 +23,37 @@ class GetData:
             epoch_end = int(datetime.strptime(end_dt, "%Y-%m-%d %H:%M:%S")
                                 .replace(tzinfo=timezone.utc)
                                 .timestamp())
+            
+            if current_month_only:
+                import calendar
+                month_abbr = calendar.month_abbr[int(month)].upper()
+                query = {
+                            "sym": {"$regex": f"^{sym}.*{month_abbr}"}, "ti": {"$gte": epoch_start, "$lte": epoch_end}
+                        }
+            else:
+                query = {
+                            "sym": {"$regex": f"^{sym}"}, "ti": {"$gte": epoch_start, "$lte": epoch_end}
+                        }
+                
             print(db, epoch_end, epoch_start)
             payload = {
                     "db": db,
                     "collection": f"{year}",
-                    "query": {
-                            "sym": {"$regex": f"^{sym}"}, "ti": {"$gte": epoch_start, "$lte": epoch_end}
-                        }
+                    "query": query 
                     }
             res = Utils.find_request_orb(ORB_URL, payload, accesstoken)
-            output[f"{sym}-O"] = list(res)
+            rows = []
+            i = 0 
+            for row in res:
+                if (i % 1000) == 0:
+                    print(i)
+                elif i == 0:
+                    print(i)
+                rows.append(row)
+                i += 1
+            output[f"{sym}-O"] =rows  
         return output
-            
-        
+                
         
     @staticmethod
     def for_sym_and_ti(accesstoken, syms, epochs, ORB_URL):
