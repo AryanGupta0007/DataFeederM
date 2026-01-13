@@ -6,6 +6,55 @@ else:
     
     
 class GetData:
+    def get_options_daily_data(ORB_URL, accesstoken, syms, date, month,  year, current_month_only=True):
+        output = {}
+        # print(month_abbr)  # JAN
+        for sym in syms:
+            if sym in ["NIFTY", "BANKNIFTY"]:
+                db = "index_options_db"
+            else:
+                db = "stock_options_db"
+            from datetime import datetime, timezone
+            start_dt = f"{year}-{month}-{int(date) if int(date) > 10 else f"0{date}"} 00:00:00"
+            end_dt = f"{year}-{month}-{int(date) if int(date) > 10 else f"0{date}"} 17:30:00"
+            epoch_start = int(datetime.strptime(start_dt, "%Y-%m-%d %H:%M:%S")
+                                .replace(tzinfo=timezone.utc)
+                                .timestamp())
+            epoch_end = int(datetime.strptime(end_dt, "%Y-%m-%d %H:%M:%S")
+                                .replace(tzinfo=timezone.utc)
+                                .timestamp())
+            
+            if current_month_only:
+                import calendar
+                month_abbr = calendar.month_abbr[int(month)].upper()
+                query = {
+                            "sym": {"$regex": f"^{sym}.*{month_abbr}"}, "ti": {"$gte": epoch_start, "$lte": epoch_end}
+                        }
+            else:
+                query = {
+                            "sym": {"$regex": f"^{sym}"}, "ti": {"$gte": epoch_start, "$lte": epoch_end}
+                        }
+                
+            print(db, epoch_end, epoch_start)
+            payload = {
+                    "db": db,
+                    "collection": f"{year}",
+                    "query": query 
+                    }
+            res = Utils.find_request_orb(ORB_URL, payload, accesstoken)
+            rows = []
+            i = 0 
+            for row in res:
+                if (i % 1000) == 0:
+                    print(i)
+                elif i == 0:
+                    print(i)
+                rows.append(row)
+                i += 1
+            output[f"{sym}-O"] =rows  
+        return output
+    
+    
     def get_options_monthly_data(ORB_URL, accesstoken, syms, month, year, current_month_only=False):
         output = {}
         # print(month_abbr)  # JAN

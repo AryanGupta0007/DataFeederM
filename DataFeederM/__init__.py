@@ -1,7 +1,7 @@
 from .main import main
 
 class _DataFeedModule:
-    def __call__(self, ORB_URL=None, ORB_PASSWORD=None, ORB_USERNAME=None, epochs=None, syms=None, month=None, year=None, symbol_type="SPOT"):
+    def __call__(self, ORB_URL=None, ORB_PASSWORD=None, ORB_USERNAME=None, epochs=None, syms=None, month=None, year=None, symbol_type="SPOT", date=None):
         if (ORB_PASSWORD == None) or (ORB_USERNAME == None) or (ORB_URL == None):
             return "[ERROR] ORB CREDS or URL not PROVIDED"
         if syms == None:
@@ -16,7 +16,7 @@ class _DataFeedModule:
                     return ("[ERROR] Epochs must be a list")
             if len(epochs) > 2:    
                 return ("[ERROR] Epochs cannot exceed length of 2 elements")
-        return main(ORB_URL=ORB_URL, ORB_PASSWORD=ORB_PASSWORD, ORB_USERNAME=ORB_USERNAME, epochs=epochs, syms=syms, symbol_type=symbol_type, year=year, month=month)
+        return main(ORB_URL=ORB_URL, ORB_PASSWORD=ORB_PASSWORD, ORB_USERNAME=ORB_USERNAME, epochs=epochs, syms=syms, symbol_type=symbol_type, year=year, month=month, date=date)
 
 # Replace this module with a callable instance
 import sys

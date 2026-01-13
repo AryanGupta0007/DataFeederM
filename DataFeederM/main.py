@@ -11,12 +11,15 @@ import warnings
 warnings.filterwarnings("ignore", category=FutureWarning)
 
 
-def main(ORB_URL, ORB_USERNAME, ORB_PASSWORD, syms: list, epochs: list, symbol_type="SPOT", year=None, month=None):
+def main(ORB_URL, ORB_USERNAME, ORB_PASSWORD, syms: list, epochs: list, symbol_type="SPOT", year=None, month=None, date=None, daily=True, monthly=False):
     accesstoken = Utils.login_orb(ORB_URL=ORB_URL, ORB_USERNAME=ORB_USERNAME, ORB_PASSWORD=ORB_PASSWORD)
     if symbol_type == "SPOT" or symbol_type == "FUTURE":
         output = GetData.for_sym_and_ti(accesstoken, syms, epochs, ORB_URL)
     elif symbol_type == "OPTION" or symbol_type == "OPTIONS":
-        output = GetData.get_options_monthly_data(ORB_URL=ORB_URL, syms=syms, year=year, month=month, accesstoken=accesstoken)
+        if monthly:
+            output = GetData.get_options_monthly_data(ORB_URL=ORB_URL, syms=syms, year=year, month=month, accesstoken=accesstoken)
+        elif daily: 
+            output = GetData.get_options_daily_data(ORB_URL=ORB_URL, syms=syms, year=year, month=month, date=date, accesstoken=accesstoken)
     return output
         
         
@@ -42,7 +45,8 @@ if __name__ == "__main__":
     # epochs = [epoch_2023, 1735689600]
     syms = ['ADANIENT-I']
     # syms = ['CIPLA-I']
-    output = main(ORB_URL=os.getenv('ORB_URL'), ORB_USERNAME=os.getenv('ORB_USERNAME'), ORB_PASSWORD=os.getenv('ORB_PASSWORD'), syms=["BANKNIFTY"], epochs=epochs, symbol_type="OPTIONS")
+    output = main(ORB_URL=os.getenv('ORB_URL'), ORB_USERNAME=os.getenv('ORB_USERNAME'), ORB_PASSWORD=os.getenv('ORB_PASSWORD'), syms=["AXISBANK"], epochs=epochs, symbol_type="OPTIONS", date=3, month=1, year=2023, monthly=False, daily=True)
+    # print(output)
     # # output = main(mongo_client=client, syms=syms, epochs=epochs)
     # if output:
     #     for k, v in output.items():
