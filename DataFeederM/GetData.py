@@ -8,9 +8,8 @@ else:
 class GetData:
     def get_options_daily_data(ORB_URL, accesstoken, syms, date, month,  year, current_month_only=True):
         output = {}
-        # print(month_abbr)  # JAN
         for sym in syms:
-            if sym in ["NIFTY", "BANKNIFTY"]:
+            if sym in ["NIFTY", "BANKNIFTY", "FINNIFTY"]:
                 db = "index_options_db"
             else:
                 db = "stock_options_db"
@@ -43,14 +42,8 @@ class GetData:
                     }
             res = Utils.find_request_orb(ORB_URL, payload, accesstoken)
             rows = []
-            i = 0 
             for row in res:
-                if (i % 1000) == 0:
-                    print(i)
-                elif i == 0:
-                    print(i)
                 rows.append(row)
-                i += 1
             output[f"{sym}-O"] =rows  
         return output
     
