@@ -14,15 +14,19 @@ class GetData:
             else:
                 db = "stock_options_db"
             from datetime import datetime, timezone
-            start_dt = f"{year}-{month}-{int(date) if int(date) > 10 else f"0{date}"} 00:00:00"
-            end_dt = f"{year}-{month}-{int(date) if int(date) > 10 else f"0{date}"} 17:30:00"
+            dt = datetime(year, month, date, tzinfo=timezone.utc)
+
+            start_dt = dt.strftime("%Y-%m-%d 00:00:00")
+            end_dt   = dt.strftime("%Y-%m-%d 17:30:00")
+
             epoch_start = int(datetime.strptime(start_dt, "%Y-%m-%d %H:%M:%S")
-                                .replace(tzinfo=timezone.utc)
-                                .timestamp())
+                            .replace(tzinfo=timezone.utc)
+                            .timestamp())
+
             epoch_end = int(datetime.strptime(end_dt, "%Y-%m-%d %H:%M:%S")
-                                .replace(tzinfo=timezone.utc)
-                                .timestamp())
-            
+                            .replace(tzinfo=timezone.utc)
+                            .timestamp())
+
             if current_month_only:
                 import calendar
                 month_abbr = calendar.month_abbr[int(month)].upper()
